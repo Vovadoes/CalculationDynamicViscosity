@@ -2,19 +2,23 @@ import json
 import math
 
 from PyQt5 import QtWidgets, QtGui
+from typing import List
+
 from files.CalculationDynamicViscosity import Ui_MainWindow
 from files.Window import Ui_Dialog
 import sys
 
 
+
 class Window(QtWidgets.QDialog):
-    def __init__(self, parent, nl: str, Ee: str):
+    def __init__(self, parent, nl: float, dnl: float, Ee: str):
         super(Window, self).__init__()
         self.ui = Ui_Dialog()
         self.parent = parent
         self.ui.setupUi(self)
-        self.ui.label.setText(nl)
-        self.ui.label_2.setText(Ee)
+        self.ui.label_2.setText(str(Ee))
+        self.ui.label_7.setText(str(nl))
+        self.ui.label_9.setText(str(dnl))
 
 
 # System consts
@@ -53,9 +57,14 @@ class mywindow(QtWidgets.QMainWindow):
 
     def click_plus(self):
         row = self.ui.tableWidget.rowCount() + 1
-        self.ui.tableWidget.setRowCount(row)
-        self.ui.tableWidget.setVerticalHeaderLabels([f"d{i + 1}" for i in range(row)])
-        # print(self.ui.tableWidget.item(0, 0).text())
+        # self.ui.tableWidget.setRowCount(row)
+        if row <= 10:
+            rowPosition = self.ui.tableWidget.rowCount()
+            self.ui.tableWidget.insertRow(rowPosition)
+            self.ui.tableWidget.setItem(rowPosition, 0, QtWidgets.QTableWidgetItem("0.0"))
+            # self.ui.tableWidget.setItem(rowPosition, 1, QtWidgets.QTableWidgetItem("0.0"))
+            self.ui.tableWidget.setVerticalHeaderLabels([f"d{i + 1}" for i in range(row)])
+            # print(self.ui.tableWidget.item(0, 0).text())
 
     def click_minus(self):
         indexes = []
@@ -65,8 +74,14 @@ class mywindow(QtWidgets.QMainWindow):
         j = 0
         for i in indexes:
             # print(f"{i=}", f"{j=}", f"{i-j=}")
-            self.ui.tableWidget.removeRow(i - j)
-            j += 1
+            if self.ui.tableWidget.rowCount() > 2:
+                self.ui.tableWidget.removeRow(i - j)
+                j += 1
+            else:
+                break
+
+        self.ui.tableWidget.setVerticalHeaderLabels(
+            [f"d{i + 1}" for i in range(self.ui.tableWidget.rowCount())])
         # print("click -")
 
     def calculate(self):
@@ -86,19 +101,23 @@ class mywindow(QtWidgets.QMainWindow):
         flag = False
         for i in range(n):
             lst = []
-            for j in self.ui.tableWidget.item(i, 0), self.ui.tableWidget.item(i, 1):
-                try:
-                    lst.append(float(j.text()))
-                    j.setBackground(QtGui.QColor(255, 255, 255))
-                except:
-                    j.setBackground(QtGui.QColor(255, 0, 0))
-                    flag = True
-                    lst.append(0.0)
-            measurements.append({"d": lst[0], "dd": lst[1]})
+            try:
+                lst.append(float(self.ui.tableWidget.item(i, 0).text()))
+                self.ui.tableWidget.item(i, 0).setBackground(QtGui.QColor(255, 255, 255))
+            except:
+                self.ui.tableWidget.item(i, 0).setBackground(QtGui.QColor(255, 0, 0))
+                flag = True
+                lst.append(0.0)
+            measurements.append({"d": lst[0], "dd": 0.0})
         del lst
         if flag:
             print("error")
             return None
+
+        measurements: List[dict[str:float]]
+        su:float = sum([i["d"] for i in measurements]) / len(measurements)
+        for i in measurements:
+            i["dd"] = su - i["d"]
 
         # Change A to n
         with open(path_to_A, "r", encoding="UTF-8") as f:
@@ -116,13 +135,14 @@ class mywindow(QtWidgets.QMainWindow):
 
         dnl = nl * E
 
-        print(f"nl = {round(nl, 10)} +- {round(dnl, 10)} Па*с")
-        print(f"Ee = {round(E * 100, 2)} %")
+        # print(f"nl = {round(nl, 10)} +- {round(dnl, 10)} Па*с")
+        # print(f"Ee = {round(E * 100, 2)} %")
 
         window = Window(
             self,
-            nl=f"nl = {round(nl, 10)} +- {round(dnl, 10)} Па*с",
-            Ee=f"Ee = {round(E * 100, 2)} %"
+            nl=round(nl, 3),
+            dnl=round(dnl, 3),
+            Ee=round(E * 100, 3)
         )
         window.exec_()
 
