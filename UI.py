@@ -9,16 +9,15 @@ from files.Window import Ui_Dialog
 import sys
 
 
-
 class Window(QtWidgets.QDialog):
-    def __init__(self, parent, nl: float, dnl: float, Ee: str):
+    def __init__(self, parent, nl: float, dnl: float, Ee: float):
         super(Window, self).__init__()
         self.ui = Ui_Dialog()
         self.parent = parent
         self.ui.setupUi(self)
-        self.ui.label_2.setText(str(Ee))
-        self.ui.label_7.setText(str(nl))
-        self.ui.label_9.setText(str(dnl))
+        self.ui.label_2.setText('{:.3f}'.format(Ee))
+        self.ui.label_7.setText('{:.3f}'.format(nl))
+        self.ui.label_9.setText('{:.3f}'.format(dnl))
 
 
 # System consts
@@ -115,7 +114,7 @@ class mywindow(QtWidgets.QMainWindow):
             return None
 
         measurements: List[dict[str:float]]
-        su:float = sum([i["d"] for i in measurements]) / len(measurements)
+        su: float = sum([i["d"] for i in measurements]) / len(measurements)
         for i in measurements:
             i["dd"] = su - i["d"]
 

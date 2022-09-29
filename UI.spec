@@ -8,7 +8,7 @@ a = Analysis(
     ['UI.py'],
     pathex=[],
     binaries=[],
-    datas=[('files/CalculationDynamicViscosity.py', 'files'), ('files/student_coefficient.json', 'files'), ('files/Window.py', 'files')],
+    datas=[('files/CalculationDynamicViscosity.py', 'files'), ('files/stu\ndent_coefficient.json', 'files'), ('files/Window.py', 'files')],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
